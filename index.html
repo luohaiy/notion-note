@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="速记">
+<title>速记 · Notion 快速记录</title>
+<style>
+  :root {
+    --bg: #0f0f0f;
+    --surface: #1a1a1a;
+    --surface2: #222222;
+    --border: rgba(255,255,255,0.08);
+    --border2: rgba(255,255,255,0.14);
+    --text: #f0f0f0;
+    --text2: #999;
+    --text3: #666;
+    --accent: #1D9E75;
+    --accent-dim: rgba(29,158,117,0.15);
+    --accent-hover: #17876a;
+    --radius: 12px;
+    --radius-sm: 8px;
+    --danger: #E24B4A;
+    --danger-bg: rgba(226,75,74,0.12);
+    --success-bg: rgba(29,158,117,0.12);
+    --font: -apple-system, 'PingFang SC', 'Helvetica Neue', sans-serif;
+  }
+
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #f5f5f3;
+      --surface: #ffffff;
+      --surface2: #f0efeb;
+      --border: rgba(0,0,0,0.08);
+      --border2: rgba(0,0,0,0.14);
+      --text: #1a1a1a;
+      --text2: #666;
+      --text3: #aaa;
+      --accent-dim: rgba(29,158,117,0.10);
+      --danger-bg: rgba(226,75,74,0.08);
+      --success-bg: rgba(29,158,117,0.08);
+    }
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+    padding: env(safe-area-inset-top, 0) env(safe-area-inset-right, 0) env(safe-area-inset-bottom, 0) env(safe-area-inset-left, 0);
+  }
+
+  .wrap {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 2rem 1.25rem 3rem;
+  }
+
+  /* Header */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+  }
+  .logo {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+  .logo-title {
+    font-size: 26px;
+    font-weight: 600;
+    color: var(--accent);
+    letter-spacing: -0.5px;
+  }
+  .logo-sub {
+    font-size: 12px;
+    color: var(--text3);
+  }
+  .btn-settings {
+    width: 38px; height: 38px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border2);
+    background: var(--surface);
+    color: var(--text2);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 17px;
+    transition: all 0.15s;
+  }
+  .btn-settings:hover { background: var(--surface2); color: var(--text); }
+  .btn-settings.active { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+
+  /* Config Panel */
+  .config-panel {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius);
+    padding: 1.125rem;
+    margin-bottom: 1.5rem;
+    display: none;
+  }
+  .config-panel.open { display: block; }
+  .config-panel-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text2);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 1rem;
+  }
+  .config-field { margin-bottom: 0.75rem; }
+  .config-field:last-of-type { margin-bottom: 1rem; }
+  .config-label {
+    font-size: 11px;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: block;
+    margin-bottom: 5px;
+  }
+  .config-input {
+    width: 100%;
+    padding: 8px 12px;
+    font-size: 13px;
+    font-family: var(--font);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .config-input:focus { border-color: var(--accent); }
+  .config-hint {
+    font-size: 11px;
+    color: var(--text3);
+    margin-top: 4px;
+    line-height: 1.5;
+  }
+  .config-hint a { color: var(--accent); text-decoration: none; }
+  .btn-save {
+    width: 100%;
+    padding: 9px;
+    font-size: 13px;
+    font-weight: 500;
+    font-family: var(--font);
+    background: var(--accent-dim);
+    border: 1px solid rgba(29,158,117,0.3);
+    border-radius: var(--radius-sm);
+    color: var(--accent);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn-save:hover { background: rgba(29,158,117,0.22); }
+
+  /* Form Fields */
+  .field { margin-bottom: 1.25rem; }
+  .field-label {
+    font-size: 13px;
+    color: var(--text2);
+    display: block;
+    margin-bottom: 7px;
+    font-weight: 400;
+  }
+  .field-input {
+    width: 100%;
+    padding: 13px 16px;
+    font-size: 16px;
+    font-family: var(--font);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    -webkit-appearance: none;
+  }
+  .field-input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-dim);
+  }
+  .field-input::placeholder { color: var(--text3); }
+  textarea.field-input {
+    resize: vertical;
+    min-height: 90px;
+    line-height: 1.6;
+  }
+
+  /* Date input calendar icon */
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(0.5);
+    cursor: pointer;
+  }
+
+  /* Tags */
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .tag {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 16px;
+    border-radius: 999px;
+    font-size: 14px;
+    cursor: pointer;
+    border: 1px solid var(--border2);
+    background: var(--surface);
+    color: var(--text2);
+    transition: all 0.15s;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .tag:hover { border-color: var(--accent); color: var(--text); }
+  .tag.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+    font-weight: 500;
+  }
+  .tag-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: 0.6;
+    flex-shrink: 0;
+  }
+  .tag.active .tag-dot { opacity: 1; }
+
+  /* Tag icons */
+  .tag-icon { font-size: 14px; }
+
+  /* Submit Button */
+  .btn-submit {
+    width: 100%;
+    padding: 15px;
+    font-size: 16px;
+    font-weight: 500;
+    font-family: var(--font);
+    background: var(--accent);
+    border: none;
+    border-radius: var(--radius);
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.15s;
+    margin-top: 0.5rem;
+    letter-spacing: 0.02em;
+  }
+  .btn-submit:hover { background: var(--accent-hover); }
+  .btn-submit:active { transform: scale(0.98); }
+  .btn-submit:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+  /* Status */
+  .status {
+    margin-top: 12px;
+    padding: 11px 16px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    text-align: center;
+    display: none;
+    line-height: 1.5;
+  }
+  .status.success { display: block; background: var(--success-bg); color: var(--accent); border: 1px solid rgba(29,158,117,0.2); }
+  .status.error { display: block; background: var(--danger-bg); color: var(--danger); border: 1px solid rgba(226,75,74,0.2); }
+
+  /* Footer */
+  .footer {
+    text-align: center;
+    margin-top: 1rem;
+    font-size: 11px;
+    color: var(--text3);
+  }
+  kbd {
+    display: inline-block;
+    padding: 1px 5px;
+    border: 1px solid var(--border2);
+    border-radius: 4px;
+    font-size: 10px;
+    font-family: var(--font);
+    background: var(--surface2);
+    color: var(--text3);
+  }
+
+  /* Divider */
+  hr { border: none; border-top: 1px solid var(--border); margin: 1.5rem 0; }
+
+  /* Config not set warning */
+  .warning-bar {
+    background: rgba(239,159,39,0.1);
+    border: 1px solid rgba(239,159,39,0.25);
+    border-radius: var(--radius-sm);
+    padding: 9px 14px;
+    font-size: 12px;
+    color: #EF9F27;
+    margin-bottom: 1.25rem;
+    display: none;
+    cursor: pointer;
+  }
+  .warning-bar.show { display: block; }
+
+  /* Responsive */
+  @media (max-width: 480px) {
+    .wrap { padding: 1.5rem 1rem 4rem; }
+    .logo-title { font-size: 24px; }
+  }
+
+  /* Animation */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .wrap { animation: fadeIn 0.25s ease; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="logo">
+      <span class="logo-title">速记</span>
+      <span class="logo-sub">Notion 快速记录</span>
+    </div>
+    <button class="btn-settings" id="btnSettings" onclick="toggleConfig()" title="设置">⚙</button>
+  </div>
+
+  <!-- Warning if not configured -->
+  <div class="warning-bar" id="warningBar" onclick="openConfig()">
+    ⚠ 尚未配置 Notion，点击此处填写 API Key 和数据库 ID
+  </div>
+
+  <!-- Config Panel -->
+  <div class="config-panel" id="configPanel">
+    <div class="config-panel-title">Notion 配置</div>
+
+    <div class="config-field">
+      <span class="config-label">Integration API Key</span>
+      <input class="config-input" id="cfgApiKey" type="password" placeholder="secret_xxxxxxxxxxxxxxxxxxxx" autocomplete="off" />
+      <div class="config-hint">在 <a href="https://www.notion.so/my-integrations" target="_blank">notion.so/my-integrations</a> 创建集成后获取</div>
+    </div>
+
+    <div class="config-field">
+      <span class="config-label">数据库 ID</span>
+      <input class="config-input" id="cfgDbId" placeholder="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx（32位）" autocomplete="off" />
+      <div class="config-hint">打开数据库页面 → 复制链接 → 取 notion.so/ 后面的那段 ID（去掉 ?v= 之后的内容），并确保已将集成添加到该数据库的连接中</div>
+    </div>
+
+    <button class="btn-save" onclick="saveConfig()">保存配置</button>
+  </div>
+
+  <!-- Form -->
+  <div class="field">
+    <label class="field-label" for="taskName">事项名称</label>
+    <input class="field-input" id="taskName" type="text" placeholder="输入要记录的内容…" autocomplete="off" />
+  </div>
+
+  <div class="field">
+    <label class="field-label" for="taskDate">日期</label>
+    <input class="field-input" id="taskDate" type="date" />
+  </div>
+
+  <div class="field">
+    <label class="field-label">标签</label>
+    <div class="tags">
+      <div class="tag active" data-tag="待办" onclick="selectTag(this)">
+        <span class="tag-dot"></span>待办
+      </div>
+      <div class="tag" data-tag="小说灵感" onclick="selectTag(this)">
+        <span class="tag-dot"></span>小说灵感
+      </div>
+      <div class="tag" data-tag="想法" onclick="selectTag(this)">
+        <span class="tag-dot"></span>想法
+      </div>
+    </div>
+  </div>
+
+  <div class="field">
+    <label class="field-label" for="taskNote">备注（可选）</label>
+    <textarea class="field-input" id="taskNote" placeholder="备注内容会自动写入页面正文…"></textarea>
+  </div>
+
+  <button class="btn-submit" id="submitBtn" onclick="submitToNotion()">记录到 Notion</button>
+
+  <div class="status" id="statusMsg"></div>
+
+  <div class="footer">
+    <kbd>⌘</kbd> + <kbd>Enter</kbd> 快速提交 &nbsp;·&nbsp; 配置保存在本地
+  </div>
+
+</div>
+
+<script>
+  // Init date
+  document.getElementById('taskDate').value = new Date().toISOString().slice(0, 10);
+
+  // Load config
+  function loadConfig() {
+    try { return JSON.parse(localStorage.getItem('notionQuickCfg') || '{}'); } catch(e) { return {}; }
+  }
+
+  function checkConfigWarning() {
+    const cfg = loadConfig();
+    const bar = document.getElementById('warningBar');
+    if (!cfg.apiKey || !cfg.dbId) {
+      bar.classList.add('show');
+    } else {
+      bar.classList.remove('show');
+    }
+  }
+
+  checkConfigWarning();
+
+  // Config panel
+  let configOpen = false;
+
+  function toggleConfig() {
+    configOpen = !configOpen;
+    document.getElementById('configPanel').classList.toggle('open', configOpen);
+    document.getElementById('btnSettings').classList.toggle('active', configOpen);
+    if (configOpen) {
+      const cfg = loadConfig();
+      if (cfg.apiKey) document.getElementById('cfgApiKey').value = cfg.apiKey;
+      if (cfg.dbId) document.getElementById('cfgDbId').value = cfg.dbId;
+    }
+  }
+
+  function openConfig() {
+    configOpen = true;
+    document.getElementById('configPanel').classList.add('open');
+    document.getElementById('btnSettings').classList.add('active');
+    const cfg = loadConfig();
+    if (cfg.apiKey) document.getElementById('cfgApiKey').value = cfg.apiKey;
+    if (cfg.dbId) document.getElementById('cfgDbId').value = cfg.dbId;
+    document.getElementById('cfgApiKey').focus();
+  }
+
+  function saveConfig() {
+    const apiKey = document.getElementById('cfgApiKey').value.trim();
+    const dbId = document.getElementById('cfgDbId').value.trim().replace(/-/g, '');
+    if (!apiKey || !dbId) {
+      showStatus('请填写完整的 API Key 和数据库 ID', 'error');
+      return;
+    }
+    localStorage.setItem('notionQuickCfg', JSON.stringify({ apiKey, dbId }));
+    showStatus('配置已保存 ✓', 'success');
+    checkConfigWarning();
+    setTimeout(() => {
+      configOpen = false;
+      document.getElementById('configPanel').classList.remove('open');
+      document.getElementById('btnSettings').classList.remove('active');
+    }, 900);
+  }
+
+  // Tag selection
+  let selectedTag = '待办';
+
+  function selectTag(el) {
+    document.querySelectorAll('.tag').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    selectedTag = el.dataset.tag;
+  }
+
+  // Status message
+  let statusTimer = null;
+  function showStatus(msg, type) {
+    const el = document.getElementById('statusMsg');
+    el.textContent = msg;
+    el.className = 'status ' + type;
+    if (statusTimer) clearTimeout(statusTimer);
+    statusTimer = setTimeout(() => { el.className = 'status'; }, 4000);
+  }
+
+  // Submit
+  async function submitToNotion() {
+    const cfg = loadConfig();
+    if (!cfg.apiKey || !cfg.dbId) {
+      showStatus('请先配置 API Key 和数据库 ID', 'error');
+      openConfig();
+      return;
+    }
+
+    const name = document.getElementById('taskName').value.trim();
+    if (!name) {
+      document.getElementById('taskName').focus();
+      document.getElementById('taskName').style.borderColor = 'var(--danger)';
+      setTimeout(() => document.getElementById('taskName').style.borderColor = '', 1500);
+      return;
+    }
+
+    const date = document.getElementById('taskDate').value;
+    const note = document.getElementById('taskNote').value.trim();
+
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.textContent = '提交中…';
+
+    const payload = {
+      parent: { database_id: cfg.dbId },
+      properties: {
+        '名称': { title: [{ text: { content: name } }] },
+        '日期': { date: { start: date } },
+        '标签': { select: { name: selectedTag } }
+      }
+    };
+
+    if (note) {
+      payload.children = [{
+        object: 'block',
+        type: 'paragraph',
+        paragraph: {
+          rich_text: [{ type: 'text', text: { content: note } }]
+        }
+      }];
+    }
+
+    try {
+      const res = await fetch('https://api.notion.com/v1/pages', {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Bearer ' + cfg.apiKey,
+          'Content-Type': 'application/json',
+          'Notion-Version': '2022-06-28'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (res.ok) {
+        showStatus('已成功记录到 Notion ✓', 'success');
+        document.getElementById('taskName').value = '';
+        document.getElementById('taskNote').value = '';
+        document.getElementById('taskDate').value = new Date().toISOString().slice(0, 10);
+        // Reset tag to 待办
+        document.querySelectorAll('.tag').forEach(t => t.classList.remove('active'));
+        document.querySelector('[data-tag="待办"]').classList.add('active');
+        selectedTag = '待办';
+      } else {
+        const err = await res.json();
+        const msg = err.message || ('错误码 ' + res.status);
+        showStatus('提交失败：' + msg, 'error');
+        if (res.status === 401) { showStatus('API Key 无效，请检查配置', 'error'); }
+        if (res.status === 404) { showStatus('数据库 ID 不正确，或未添加集成连接', 'error'); }
+        if (res.status === 400) { showStatus('字段名称不匹配，请确认数据库属性名', 'error'); }
+      }
+    } catch (e) {
+      showStatus('网络请求失败，请检查网络连接', 'error');
+      console.error(e);
+    }
+
+    btn.disabled = false;
+    btn.textContent = '记录到 Notion';
+  }
+
+  // Keyboard shortcut
+  document.addEventListener('keydown', function(e) {
+    if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+      e.preventDefault();
+      submitToNotion();
+    }
+  });
+</script>
+</body>
+</html>
